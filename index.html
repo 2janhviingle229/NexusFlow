@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusFlow — Smart Supply Chain Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#16a34a;--green-l:#dcfce7;--green-m:#86efac;--green-d:#14532d;
+  --green-soft:#f0fdf4;--green-mid:#22c55e;
+  --amber:#d97706;--amber-l:#fef3c7;--red:#dc2626;--red-l:#fee2e2;
+  --blue:#2563eb;--blue-l:#eff6ff;--slate:#64748b;
+  --bg:#f8fafc;--white:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.1),0 4px 8px rgba(0,0,0,.05);
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Plus Jakarta Sans',sans-serif;
+  --r:8px;--r-lg:12px;--r-xl:16px;
+}
+
+/* ── DARK MODE ── */
+[data-theme="dark"]{
+  --bg:#0f172a;--white:#1e293b;--border:#334155;--border2:#475569;
+  --text:#f1f5f9;--text2:#cbd5e1;--text3:#64748b;
+  --green-soft:#052e16;--green-l:#14532d;--green-d:#86efac;
+  --blue-l:#172554;--red-l:#450a0a;--amber-l:#451a03;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:0 4px 12px rgba(0,0,0,.4),0 2px 4px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.5),0 4px 8px rgba(0,0,0,.3);
+}
+[data-theme="dark"] .continent{fill:#1a2e1a;stroke:#2d4a2d}
+[data-theme="dark"] .map-wrap{background:#0d1f1a}
+[data-theme="dark"] select,[data-theme="dark"] input{background:#0f172a;color:#f1f5f9;border-color:#334155}
+[data-theme="dark"] .map-legend,[data-theme="dark"] .ms,[data-theme="dark"] .map-ctrl{background:rgba(30,41,59,.97);border-color:#334155}
+[data-theme="dark"] .tooltip{background:#1e293b;border-color:#334155}
+
+/* THEME TOGGLE */
+.theme-toggle{
+  display:flex;align-items:center;gap:7px;
+  background:var(--bg);border:1px solid var(--border);
+  padding:5px 11px;border-radius:20px;cursor:pointer;
+  font-size:11px;font-weight:600;color:var(--text2);
+  font-family:var(--mono);transition:all .2s;user-select:none;
+}
+.theme-toggle:hover{border-color:var(--border2);color:var(--text)}
+.toggle-track{
+  width:30px;height:16px;background:var(--border2);border-radius:8px;
+  position:relative;transition:background .2s;flex-shrink:0;
+}
+.toggle-track.on{background:var(--green)}
+.toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:12px;height:12px;background:#fff;border-radius:50%;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.toggle-track.on .toggle-thumb{transform:translateX(14px)}
+
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── APP SHELL ── */
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* ── HEADER ── */
+.hdr{
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;background:var(--white);
+  border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow);flex-shrink:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-box{
+  width:34px;height:34px;background:var(--green);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;
+  box-shadow:0 2px 6px rgba(22,163,74,.35);
+}
+.logo-name{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.03em}
+.logo-name span{color:var(--green)}
+.logo-tag{font-size:10px;color:var(--text3);font-weight:400;margin-left:2px}
+
+.nav-tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3px}
+.nav-tab{
+  padding:5px 14px;border-radius:7px;border:none;background:transparent;
+  color:var(--text2);font-family:var(--sans);font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.nav-tab:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.nav-tab.active{background:var(--white);color:var(--green);font-weight:600;box-shadow:var(--shadow)}
+
+.hdr-right{display:flex;align-items:center;gap:10px}
+.live-chip{
+  display:flex;align-items:center;gap:5px;
+  background:var(--green-soft);border:1px solid var(--green-m);
+  padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;color:var(--green-d);
+  font-family:var(--mono);
+}
+.live-dot{width:6px;height:6px;background:var(--green-mid);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.alert-chip{
+  background:var(--red-l);border:1px solid #fca5a5;
+  color:var(--red);padding:4px 10px;border-radius:6px;
+  font-size:11px;font-weight:700;font-family:var(--mono);cursor:pointer;
+}
+.user-badge{
+  width:32px;height:32px;border-radius:50%;background:var(--green-l);
+  border:2px solid var(--green-m);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--green-d);cursor:pointer;
+}
+
+/* ── VIEWS ── */
+.view{display:none;flex:1;overflow:hidden}
+.view.active{display:flex}
+
+/* ── DASHBOARD ── */
+#v-dash{flex-direction:row}
+
+/* ── SIDEBAR ── */
+.sb{
+  width:280px;flex-shrink:0;background:var(--white);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-section{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+
+/* METRIC MINI CARDS */
+.m2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.mc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px}
+.mc-v{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1;margin-bottom:2px}
+.mc-l{font-size:9px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+
+/* FILTER ROW */
+.filter-row{display:flex;gap:4px;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.f-btn{
+  flex:1;padding:5px 4px;border:1px solid var(--border);border-radius:6px;
+  background:var(--white);color:var(--text3);font-size:9px;font-weight:700;
+  font-family:var(--mono);cursor:pointer;transition:all .15s;text-align:center;
+}
+.f-btn:hover{color:var(--text);border-color:var(--border2)}
+.f-btn.fa{border-color:var(--border2);background:var(--bg);color:var(--text)}
+.f-btn[data-r="CRIT"].fa{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+.f-btn[data-r="HIGH"].fa{background:#ffedd5;border-color:#fdba74;color:#9a3412}
+.f-btn[data-r="MED"].fa{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.f-btn[data-r="LOW"].fa{background:var(--green-l);border-color:var(--green-m);color:var(--green-d)}
+
+/* SHIP LIST */
+.ship-list{flex:1;overflow-y:auto;padding:8px}
+.si{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;
+  border:1px solid transparent;border-radius:var(--r);cursor:pointer;
+  transition:all .15s;margin-bottom:3px;
+}
+.si:hover{background:var(--bg);border-color:var(--border)}
+.si.sel{background:var(--green-soft);border-color:var(--green-m)}
+.si-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.si-body{flex:1;min-width:0}
+.si-id{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text)}
+.si-route{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.risk-tag{font-size:8px;font-weight:700;font-family:var(--mono);padding:2px 5px;border-radius:3px;flex-shrink:0}
+.si-score{font-family:var(--mono);font-size:12px;font-weight:700;width:22px;text-align:right;flex-shrink:0}
+
+/* SB BOTTOM CHART */
+.sb-chart{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.mini-bars{display:flex;align-items:flex-end;gap:4px;height:36px;margin-top:7px}
+.mb{flex:1;border-radius:3px 3px 0 0;min-height:4px;cursor:default;transition:opacity .15s}
+.mb:hover{opacity:.7}
+.mb-lbls{display:flex;gap:4px;margin-top:3px}
+.mb-l{flex:1;font-size:8px;color:var(--text3);text-align:center}
+
+/* ── MAP AREA ── */
+.map-wrap{flex:1;position:relative;background:#e8f4f0;overflow:hidden}
+.map-svg{width:100%;height:100%}
+
+/* SVG styles */
+.continent{fill:#d1e8d4;stroke:#b7d9bc;stroke-width:.6}
+.grid-l{stroke:rgba(255,255,255,.6);stroke-width:.5}
+.hub-dot{fill:var(--green)}
+.hub-ring{fill:none;stroke:var(--green);stroke-width:.8;opacity:.4}
+.hub-lbl{font-size:7px;fill:#2d6a4f;font-family:'Plus Jakarta Sans',sans-serif}
+.route-line{fill:none;stroke-width:1.4}
+.ship-dot{cursor:pointer}
+.dis-circle{fill-opacity:.12;stroke-width:1.2;stroke-dasharray:5,3}
+.dis-lbl{font-size:8px;font-family:'JetBrains Mono',monospace;text-anchor:middle;font-weight:600}
+.reroute-line{fill:none;stroke:#16a34a;stroke-width:2.2;stroke-dasharray:9,4}
+.grid-line{stroke:rgba(255,255,255,.5);stroke-width:.4}
+
+/* MAP LEGEND */
+.map-legend{
+  position:absolute;top:12px;left:12px;
+  background:rgba(255,255,255,.95);border:1px solid var(--border);
+  padding:10px 13px;border-radius:var(--r-lg);
+  box-shadow:var(--shadow-md);
+}
+.leg-row{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--text2);margin-bottom:4px}
+.leg-row:last-child{margin:0}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.leg-dash{width:20px;height:2px;background:var(--green);border-radius:1px;flex-shrink:0;
+  background:repeating-linear-gradient(90deg,var(--green) 0,var(--green) 5px,transparent 5px,transparent 9px)}
+
+/* MAP STATS */
+.map-stats{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px}
+.ms{
+  background:rgba(255,255,255,.95);border:1px solid var(--border);
+  padding:8px 12px;border-radius:var(--r);box-shadow:var(--shadow);text-align:right;
+}
+.ms-v{font-family:var(--mono);font-size:15px;font-weight:700;line-height:1}
+.ms-l{font-size:9px;color:var(--text3);margin-top:1px}
+
+/* MAP CONTROLS */
+.map-ctrl{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;
+  background:rgba(255,255,255,.97);border:1px solid var(--border);
+  padding:8px 12px;border-radius:12px;box-shadow:var(--shadow-lg);
+}
+.mc-btn{
+  padding:6px 13px;border:1px solid var(--border);border-radius:6px;
+  background:var(--white);color:var(--text2);font-size:11px;
+  font-family:var(--sans);font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.mc-btn:hover{background:var(--bg);color:var(--text)}
+.mc-btn.on{background:var(--green-soft);border-color:var(--green-m);color:var(--green-d)}
+.mc-btn.storm{border-color:#fca5a5;color:var(--red)}
+.mc-btn.storm:hover{background:var(--red-l)}
+.mc-btn.sim{border-color:#fcd34d;color:var(--amber)}
+.mc-btn.sim:hover{background:#fef3c7}
+.mc-btn.reroute{border-color:var(--green-m);color:var(--green-d)}
+.mc-btn.reroute:hover{background:var(--green-soft)}
+
+/* TOOLTIP */
+.tooltip{
+  position:absolute;background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:11px 14px;font-size:11px;pointer-events:none;
+  z-index:200;min-width:175px;display:none;box-shadow:var(--shadow-lg);
+}
+.tt-id{font-family:var(--mono);font-size:12px;font-weight:700;margin-bottom:7px;color:var(--text)}
+.tt-r{display:flex;justify-content:space-between;gap:14px;margin-bottom:3px}
+.tt-k{color:var(--text3);font-size:10px}
+.tt-v{font-size:10px;font-family:var(--mono);font-weight:500}
+
+/* ── RIGHT PANEL ── */
+.rp{
+  width:296px;flex-shrink:0;background:var(--white);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;
+}
+.rp-hdr{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);flex-shrink:0;display:flex;justify-content:space-between;align-items:center;
+}
+.rp-scroll{flex:1;overflow-y:auto;padding:12px}
+
+/* DETAIL */
+.no-sel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:150px;gap:8px;color:var(--text3)}
+.no-sel-icon{font-size:36px;opacity:.25}
+.det-id{font-family:var(--mono);font-size:15px;font-weight:700;margin-bottom:3px}
+.det-route{font-size:11px;color:var(--text3);margin-bottom:12px}
+
+/* PROGRESS */
+.prog{display:flex;align-items:center;margin:12px 0}
+.ps{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.ps::after{content:'';position:absolute;top:8px;left:50%;width:100%;height:1.5px;background:var(--border);z-index:0}
+.ps:last-child::after{display:none}
+.pdot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:var(--white);z-index:1;margin-bottom:4px;transition:all .25s}
+.pdot.done{background:var(--green);border-color:var(--green)}
+.pdot.act{background:var(--amber);border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.15)}
+.plbl{font-size:8px;color:var(--text3);text-align:center}
+.ps.done .plbl{color:var(--green)}
+.ps.act .plbl{color:var(--amber)}
+
+/* INFO GRID */
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:11px}
+.ig-c{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px}
+.ig-k{font-size:9px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.ig-v{font-size:11px;font-family:var(--mono);font-weight:600;color:var(--text)}
+
+/* RISK BAR */
+.rb-wrap{margin-bottom:12px}
+.rb-hdr{display:flex;justify-content:space-between;font-size:10px;margin-bottom:5px}
+.rb-k{color:var(--text3)}
+.rb-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.rb-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* ROUTE COMPARE */
+.rc-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:7px}
+.rc-box.rec{border-color:var(--green-m);background:var(--green-soft)}
+.rc-label{font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;margin-bottom:7px}
+.rc-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.rc-k{font-size:9px;color:var(--text3)}
+.rc-v{font-size:11px;font-family:var(--mono);font-weight:600}
+
+/* ACTION ROW */
+.act-row{display:flex;gap:6px;margin-top:9px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--text);font-size:11px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .15s}
+.btn:hover{background:var(--bg)}
+.btn-g{background:var(--green);color:#fff;border-color:var(--green);font-weight:600}
+.btn-g:hover{background:#15803d}
+
+/* ALERTS PANEL */
+.alert-card{
+  border-radius:var(--r);padding:10px 12px;margin-bottom:7px;
+  border:1px solid var(--border);border-left-width:3px;background:var(--white);
+}
+.ac-title{font-size:11px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.ac-body{font-size:10px;color:var(--text2);line-height:1.55;margin-bottom:7px}
+.ac-foot{display:flex;justify-content:space-between;align-items:center}
+.ac-time{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+/* SECTION LABEL */
+.slabel{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:12px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+
+/* DIVIDER */
+.div-line{height:1px;background:var(--border);margin:10px 0}
+
+/* ── ANALYTICS VIEW ── */
+#v-analytics{flex-direction:column;overflow-y:auto;padding:24px;gap:16px;background:var(--bg)}
+.a-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:18px;box-shadow:var(--shadow)}
+.kpi-v{font-family:var(--mono);font-size:28px;font-weight:700;line-height:1;margin-bottom:5px}
+.kpi-l{font-size:11px;color:var(--text2);margin-bottom:4px}
+.kpi-s{font-size:10px;font-weight:500}
+.kpi-accent{height:3px;border-radius:2px;width:40px;margin-top:12px}
+.a-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.a-chart-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:18px;box-shadow:var(--shadow)}
+.chart-title{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.chart-wrap{position:relative;height:175px}
+.a-full{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:18px;box-shadow:var(--shadow)}
+.chart-sm{position:relative;height:105px}
+
+/* ── ROUTE OPTIMIZER ── */
+#v-routes{flex-direction:column;overflow-y:auto;padding:24px;gap:16px;background:var(--bg)}
+.ro-header{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:22px;box-shadow:var(--shadow)}
+.ro-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-.02em}
+.ro-sub{font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.6}
+.ro-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end}
+.inp-lbl{font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.02em}
+select,input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:var(--r);font-family:var(--sans);font-size:12px;outline:none;transition:border-color .15s}
+select:focus,input:focus{border-color:var(--green)}
+.ro-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ro-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:20px;box-shadow:var(--shadow);transition:box-shadow .2s}
+.ro-card:hover{box-shadow:var(--shadow-md)}
+.ro-card.best{border-color:var(--green);border-width:2px}
+.ro-card-badge{display:inline-block;font-size:9px;font-weight:700;font-family:var(--mono);padding:3px 8px;border-radius:4px;margin-bottom:10px;letter-spacing:.04em}
+.ro-card-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:14px;letter-spacing:-.02em}
+.ro-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.ro-m{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:9px}
+.ro-mv{font-family:var(--mono);font-size:14px;font-weight:700;margin-bottom:2px}
+.ro-ml{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.ro-risk-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:10px 0}
+.ro-risk-fill{height:100%;border-radius:2px}
+.ro-note{font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:12px}
+.btn-full{width:100%;flex:1;padding:9px;text-align:center}
+
+/* ── AI MODEL ── */
+#v-ai{flex-direction:column;overflow-y:auto;padding:24px;gap:16px;background:var(--bg)}
+.ai-header{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid var(--green-m);border-radius:var(--r-xl);padding:22px;box-shadow:var(--shadow)}
+.ai-badge{display:inline-flex;align-items:center;gap:5px;background:var(--green-soft);border:1px solid var(--green-m);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;color:var(--green-d);margin-bottom:10px;font-family:var(--mono)}
+.ai-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:5px;letter-spacing:-.02em}
+.ai-sub{font-size:12px;color:var(--text2);line-height:1.6}
+.ai-body{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ai-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:20px;box-shadow:var(--shadow)}
+.ai-panel-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.ai-panel-sub{font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.sl-lbl{font-size:10px;color:var(--text2);width:130px;flex-shrink:0;font-weight:500}
+input[type=range]{flex:1;accent-color:var(--green);height:4px;padding:0}
+.sl-val{font-size:10px;font-family:var(--mono);font-weight:600;width:26px;text-align:right;flex-shrink:0}
+.ml-output{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;display:flex;align-items:center;gap:14px;margin-top:10px}
+.ml-score{font-family:var(--mono);font-size:42px;font-weight:700;line-height:1}
+.ml-info-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.ml-info-sub{font-size:10px;color:var(--text3)}
+.fi-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:10px;color:var(--text2)}
+.fi-lbl{width:110px;flex-shrink:0}
+.fi-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.fi-fill{height:100%;border-radius:2px;background:var(--green)}
+.fi-val{font-family:var(--mono);font-size:9px;width:28px;text-align:right;flex-shrink:0;color:var(--text3)}
+
+/* ── ALERTS VIEW ── */
+#v-alerts{flex-direction:column;overflow-y:auto;padding:24px;gap:14px;background:var(--bg)}
+.al-header-row{display:flex;justify-content:space-between;align-items:center}
+.al-page-title{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.al-count{font-size:12px;color:var(--text3)}
+.al-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:18px;border-left-width:4px;box-shadow:var(--shadow)}
+.al-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.al-title{font-size:13px;font-weight:700;color:var(--text)}
+.al-time{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.al-body{font-size:11px;color:var(--text2);line-height:1.65;margin-bottom:10px}
+.al-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.al-tag{font-size:9px;font-weight:600;font-family:var(--mono);padding:2px 7px;border-radius:3px;background:var(--bg);border:1px solid var(--border);color:var(--text2)}
+.al-foot{display:flex;gap:7px}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:22px;right:22px;z-index:999;
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);
+  padding:14px 18px;min-width:290px;box-shadow:var(--shadow-lg);
+  transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.show{transform:translateX(0)}
+.toast-bar{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:var(--r-xl) 0 0 var(--r-xl)}
+.toast-title{font-weight:700;font-size:13px;margin-bottom:4px}
+.toast-body{font-size:11px;color:var(--text2);line-height:1.5}
+
+/* STATUS BADGE */
+.sbadge{display:inline-block;font-size:8px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:3px}
+
+/* DISMISSED */
+.dismissed{opacity:.35}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ HEADER ══ -->
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-box">N</div>
+    <div>
+      <div class="logo-name">Nexus<span>Flow</span></div>
+    </div>
+    <span class="logo-tag">Smart Supply Chain Intelligence · For Logistics Managers</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="nav(this,'dash')">Dashboard</button>
+    <button class="nav-tab" onclick="nav(this,'analytics')">Analytics</button>
+    <button class="nav-tab" onclick="nav(this,'routes')">Route Optimizer</button>
+    <button class="nav-tab" onclick="nav(this,'ai')">AI Risk Model</button>
+    <button class="nav-tab" onclick="nav(this,'alerts')">Alerts</button>
+  </div>
+  <div class="hdr-right">
+    <div class="live-chip"><span class="live-dot"></span><span id="clock">--:--:--</span> UTC</div>
+    <div class="alert-chip" id="alert-chip" onclick="nav(document.querySelectorAll('.nav-tab')[4],'alerts')">⚠ 3 ALERTS</div>
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+      <span id="theme-icon">🌙</span>
+      <div class="toggle-track" id="toggle-track"><div class="toggle-thumb"></div></div>
+      <span id="theme-lbl">Dark</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="view active" id="v-dash">
+
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-section">
+      <div class="sb-label">Fleet Overview</div>
+      <div class="m2">
+        <div class="mc"><div class="mc-v" style="color:#2563eb">20</div><div class="mc-l">Shipments</div></div>
+        <div class="mc"><div class="mc-v" style="color:#dc2626" id="sb-risk">3</div><div class="mc-l">At Risk</div></div>
+        <div class="mc"><div class="mc-v" style="color:#16a34a" id="sb-ot">87%</div><div class="mc-l">On-Time</div></div>
+        <div class="mc"><div class="mc-v" style="color:#d97706">$2.1M</div><div class="mc-l">Saved</div></div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <button class="f-btn fa" data-r="ALL" onclick="setF(this,'ALL')">ALL</button>
+      <button class="f-btn" data-r="LOW" onclick="setF(this,'LOW')">LOW</button>
+      <button class="f-btn" data-r="MED" onclick="setF(this,'MED')">MED</button>
+      <button class="f-btn" data-r="HIGH" onclick="setF(this,'HIGH')">HIGH</button>
+      <button class="f-btn" data-r="CRIT" onclick="setF(this,'CRIT')">CRIT</button>
+    </div>
+
+    <div class="ship-list" id="ship-list"></div>
+
+    <div class="sb-chart">
+      <div class="sb-label">Disruptions This Week</div>
+      <div class="mini-bars" id="mini-bars"></div>
+      <div class="mb-lbls" id="mini-lbls"></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-wrap" id="map-wrap">
+    <svg class="map-svg" id="mapSvg" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-sm"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <!-- Grid -->
+      <g id="grid-g"></g>
+      <!-- Continents -->
+      <path class="continent" d="M72,68 L95,63 L132,66 L178,70 L210,78 L236,93 L250,118 L254,148 L246,174 L232,194 L212,214 L192,232 L172,248 L152,262 L132,272 L112,268 L98,252 L86,232 L76,208 L68,182 L64,155 L66,128 L70,98 Z"/>
+      <path class="continent" d="M168,262 L188,257 L202,272 L207,293 L196,308 L180,302 L168,282 Z"/>
+      <path class="continent" d="M176,308 L206,298 L228,308 L246,332 L253,362 L256,398 L248,432 L232,452 L212,458 L192,448 L175,422 L166,392 L163,358 L165,328 Z"/>
+      <path class="continent" d="M428,52 L462,47 L492,57 L508,77 L502,102 L485,116 L462,120 L442,112 L425,97 L423,75 Z"/>
+      <path class="continent" d="M452,32 L474,27 L488,40 L486,55 L468,50 L454,53 Z"/>
+      <path class="continent" d="M428,132 L468,122 L502,128 L522,153 L532,183 L532,218 L525,252 L517,288 L505,318 L487,342 L465,355 L442,352 L422,332 L408,302 L402,267 L402,232 L408,197 L413,162 L418,142 Z"/>
+      <path class="continent" d="M508,57 L558,52 L608,57 L648,65 L678,77 L693,97 L695,122 L685,145 L662,155 L632,158 L598,152 L565,142 L540,127 L515,109 L505,87 Z"/>
+      <path class="continent" d="M648,65 L718,57 L772,62 L812,72 L837,92 L838,117 L825,142 L797,155 L765,159 L735,155 L707,145 L685,145 L678,127 L682,102 L665,82 Z"/>
+      <path class="continent" d="M597,137 L638,132 L662,152 L669,182 L662,212 L642,235 L619,239 L597,227 L582,202 L579,175 L587,152 Z"/>
+      <path class="continent" d="M708,152 L748,152 L773,165 L775,192 L759,209 L735,212 L712,197 L702,175 Z"/>
+      <path class="continent" d="M748,335 L808,327 L847,340 L862,370 L857,405 L835,425 L805,430 L775,420 L755,400 L745,370 Z"/>
+      <path class="continent" d="M808,107 L826,102 L838,115 L832,132 L817,137 L805,125 Z"/>
+      <!-- Dynamic layers -->
+      <g id="routes-g"></g>
+      <g id="reroutes-g"></g>
+      <g id="dis-g"></g>
+      <g id="hubs-g"></g>
+      <g id="ships-g"></g>
+    </svg>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="leg-row"><div class="leg-dot" style="background:#dc2626"></div>Critical risk</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#f97316"></div>High risk</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#eab308"></div>Medium risk</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#16a34a"></div>Low / Rerouted</div>
+      <div class="leg-row"><div class="leg-dash"></div>Safe alternate route</div>
+    </div>
+
+    <!-- Map Stats -->
+    <div class="map-stats">
+      <div class="ms"><div class="ms-v" style="color:#dc2626" id="ms-crit">1</div><div class="ms-l">Critical</div></div>
+      <div class="ms"><div class="ms-v" style="color:#f97316" id="ms-high">2</div><div class="ms-l">High Risk</div></div>
+      <div class="ms"><div class="ms-v" style="color:#16a34a" id="ms-rer">0</div><div class="ms-l">Rerouted</div></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="map-ctrl">
+      <button class="mc-btn on" id="btn-routes" onclick="toggleLayer('routes',this)">⬡ Routes</button>
+      <button class="mc-btn on" id="btn-dis" onclick="toggleLayer('dis',this)">◎ Disruptions</button>
+      <button class="mc-btn sim" onclick="addDisruption()">+ Simulate Event</button>
+      <button class="mc-btn storm" onclick="triggerStorm()">🌪 Pacific Storm</button>
+      <button class="mc-btn reroute" onclick="autoReroute()">↺ Auto-Reroute All</button>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="rp">
+    <div class="rp-hdr">
+      <span>Shipment Detail</span>
+      <span id="rp-risk" style="display:none;font-size:8px;padding:2px 7px;border-radius:3px;font-weight:700;font-family:var(--mono)"></span>
+    </div>
+    <div class="rp-scroll" id="rp-body">
+      <div class="no-sel"><div class="no-sel-icon">📦</div><span>Select a shipment</span></div>
+    </div>
+    <div class="rp-hdr">Active Alerts</div>
+    <div style="flex:1;overflow-y:auto;padding:10px" id="alerts-rp"></div>
+  </div>
+</div>
+
+<!-- ══ ANALYTICS ══ -->
+<div class="view" id="v-analytics">
+  <div class="a-kpis">
+    <div class="kpi">
+      <div class="kpi-v" style="color:#16a34a">87.3%</div>
+      <div class="kpi-l">On-Time Delivery Rate</div>
+      <div class="kpi-s" style="color:#16a34a">▲ 4.2% vs last month</div>
+      <div class="kpi-accent" style="background:#16a34a"></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-v" style="color:#d97706">2.1h</div>
+      <div class="kpi-l">Avg Detection Time</div>
+      <div class="kpi-s" style="color:#16a34a">▼ 68% faster than manual</div>
+      <div class="kpi-accent" style="background:#d97706"></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-v" style="color:#2563eb">$2.1M</div>
+      <div class="kpi-l">Disruption Cost Avoided</div>
+      <div class="kpi-s" style="color:#16a34a">▲ 12% ROI this quarter</div>
+      <div class="kpi-accent" style="background:#2563eb"></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-v" style="color:#7c3aed">94.1%</div>
+      <div class="kpi-l">AI Model Accuracy</div>
+      <div class="kpi-s" style="color:#64748b">Model v2.4 deployed</div>
+      <div class="kpi-accent" style="background:#7c3aed"></div>
+    </div>
+  </div>
+  <div class="a-charts">
+    <div class="a-chart-card"><div class="chart-title">Weekly On-Time Rate (%)</div><div class="chart-wrap"><canvas id="ch-ot" role="img" aria-label="Weekly on-time delivery rate"></canvas></div></div>
+    <div class="a-chart-card"><div class="chart-title">Disruption Categories</div><div class="chart-wrap"><canvas id="ch-dis" role="img" aria-label="Disruption categories"></canvas></div></div>
+    <div class="a-chart-card"><div class="chart-title">Monthly Shipment Volume</div><div class="chart-wrap"><canvas id="ch-vol" role="img" aria-label="Monthly shipment volume"></canvas></div></div>
+    <div class="a-chart-card"><div class="chart-title">Avg Risk Score Trend (30d)</div><div class="chart-wrap"><canvas id="ch-risk" role="img" aria-label="Risk score trend"></canvas></div></div>
+  </div>
+  <div class="a-full"><div class="chart-title">Risk Score Distribution — All Shipments</div><div class="chart-sm"><canvas id="ch-dist" role="img" aria-label="Risk score distribution"></canvas></div></div>
+</div>
+
+<!-- ══ ROUTE OPTIMIZER ══ -->
+<div class="view" id="v-routes">
+  <div class="ro-header">
+    <div class="ro-title">Dynamic Route Optimizer</div>
+    <div class="ro-sub">AI-powered route suggestions based on real-time weather, port congestion and geopolitical risk data. Select your origin, destination and optimization priority to generate ranked alternatives.</div>
+    <div class="ro-form">
+      <div><div class="inp-lbl">Origin Port</div>
+        <select id="ro-from">
+          <option>Shanghai, China</option><option>Tokyo, Japan</option>
+          <option>Singapore</option><option>Dubai, UAE</option>
+          <option>Mumbai, India</option><option>Rotterdam, Netherlands</option>
+          <option>Los Angeles, USA</option>
+        </select>
+      </div>
+      <div><div class="inp-lbl">Destination Port</div>
+        <select id="ro-to">
+          <option>Los Angeles, USA</option><option>New York, USA</option>
+          <option>London, UK</option><option>Rotterdam, Netherlands</option>
+          <option>Sydney, Australia</option><option>Mumbai, India</option>
+          <option>São Paulo, Brazil</option>
+        </select>
+      </div>
+      <div><div class="inp-lbl">Optimization Priority</div>
+        <select id="ro-prio">
+          <option>Balanced (AI Recommended)</option>
+          <option>Fastest Route</option>
+          <option>Lowest Cost</option>
+          <option>Lowest Risk</option>
+        </select>
+      </div>
+      <button class="btn btn-g" onclick="genRoutes()" style="padding:9px 20px;font-size:13px">Optimize ↗</button>
+    </div>
+  </div>
+  <div class="ro-cards" id="ro-cards"></div>
+</div>
+
+<!-- ══ AI MODEL ══ -->
+<div class="view" id="v-ai">
+  <div class="ai-header">
+    <div class="ai-badge">🤖 AI ENGINE ACTIVE</div>
+    <div class="ai-title">AI Risk Prediction Model</div>
+    <div class="ai-sub">Random Forest classifier trained on 50,847 historical shipments. Adjust the input parameters below to see how the model scores risk in real time — exactly as it does for every active shipment on the dashboard.</div>
+  </div>
+  <div class="ai-body">
+    <div class="ai-panel">
+      <div class="ai-panel-title">Input Parameters</div>
+      <div class="ai-panel-sub">Drag the sliders to simulate different shipment conditions</div>
+      <div id="ml-sliders"></div>
+      <div class="ml-output">
+        <div>
+          <div class="ml-score" id="ml-score">--</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px">Risk Score / 100</div>
+        </div>
+        <div>
+          <div class="ml-info-title" id="ml-cat">—</div>
+          <div class="ml-info-sub" id="ml-conf">—</div>
+          <div style="margin-top:6px">
+            <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Recommendation</div>
+            <div id="ml-rec" style="font-size:11px;color:var(--text2);line-height:1.5">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-panel">
+      <div class="ai-panel-title">Feature Importance</div>
+      <div class="ai-panel-sub">How much each factor contributes to the risk prediction</div>
+      <div id="fi-bars"></div>
+      <div class="div-line"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px">Model Performance</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div class="mc"><div class="mc-v" style="color:#16a34a;font-size:16px">94.1%</div><div class="mc-l">Accuracy</div></div>
+        <div class="mc"><div class="mc-v" style="color:#2563eb;font-size:16px">91.8%</div><div class="mc-l">Precision</div></div>
+        <div class="mc"><div class="mc-v" style="color:#7c3aed;font-size:16px">89.4%</div><div class="mc-l">Recall</div></div>
+      </div>
+      <div class="div-line"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px">Training Details</div>
+      <div style="font-size:10px;color:var(--text2);line-height:1.9">
+        Algorithm: Random Forest (500 trees)<br>
+        Training set: 50,847 historical shipments<br>
+        Features used: 12 input variables<br>
+        Validation window: 30-day rolling<br>
+        Last retrained: Today 06:00 UTC<br>
+        Data sources: Weather APIs, Port APIs, AIS vessel feeds
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ALERTS ══ -->
+<div class="view" id="v-alerts">
+  <div class="al-header-row">
+    <div class="al-page-title">Alerts & Activity Log</div>
+    <div class="al-count" id="al-cnt">8 events</div>
+  </div>
+  <div id="al-list"></div>
+</div>
+
+</div><!-- #app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-bar" id="toast-bar"></div>
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-body" id="toast-body"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const HUBS={
+  'Shanghai':{x:788,y:168},'Tokyo':{x:843,y:146},'Singapore':{x:760,y:255},
+  'Dubai':{x:580,y:180},'Mumbai':{x:632,y:208},'Rotterdam':{x:456,y:86},
+  'London':{x:432,y:80},'Lagos':{x:435,y:245},'New York':{x:163,y:136},
+  'Los Angeles':{x:86,y:158},'Chicago':{x:146,y:130},'Sydney':{x:818,y:385},
+  'Nairobi':{x:525,y:270},'SaoPaulo':{x:215,y:345},'Hamburg':{x:466,y:76},
+  'Busan':{x:830,y:160},'CapeTown':{x:468,y:368},
+};
+
+const SHIPS=[
+  {id:'SH-4821',from:'Shanghai',to:'Los Angeles',score:92,cargo:'Electronics',eta:'2d 4h',delay:'+18h',weight:'340t',carrier:'COSCO',value:'$4.2M',steps:[2,2,1,0,0]},
+  {id:'SH-3390',from:'Rotterdam',to:'New York',score:74,cargo:'Pharmaceuticals',eta:'3d 2h',delay:'+6h',weight:'120t',carrier:'Maersk',value:'$1.8M',steps:[2,2,1,0,0]},
+  {id:'SH-5512',from:'Dubai',to:'Mumbai',score:71,cargo:'Crude Oil',eta:'1d 8h',delay:'+4h',weight:'820t',carrier:'MSC',value:'$6.1M',steps:[2,2,2,1,0]},
+  {id:'SH-1170',from:'Singapore',to:'Sydney',score:48,cargo:'Auto Parts',eta:'4d 1h',delay:'+2h',weight:'200t',carrier:'Evergreen',value:'$900K',steps:[2,2,1,0,0]},
+  {id:'SH-8803',from:'Tokyo',to:'Chicago',score:41,cargo:'Machinery',eta:'5d 3h',delay:'+1h',weight:'180t',carrier:'NYK',value:'$2.3M',steps:[2,1,0,0,0]},
+  {id:'SH-2241',from:'Lagos',to:'London',score:37,cargo:'Agricultural',eta:'6d',delay:'—',weight:'450t',carrier:'CMA',value:'$340K',steps:[2,2,1,0,0]},
+  {id:'SH-6670',from:'New York',to:'SaoPaulo',score:18,cargo:'Consumer',eta:'7d 2h',delay:'—',weight:'95t',carrier:'Hapag',value:'$560K',steps:[2,2,2,1,0]},
+  {id:'SH-7794',from:'Los Angeles',to:'Shanghai',score:14,cargo:'Recycled',eta:'9d',delay:'—',weight:'310t',carrier:'OOCL',value:'$280K',steps:[2,2,1,0,0]},
+  {id:'SH-0021',from:'Mumbai',to:'Rotterdam',score:11,cargo:'Textiles',eta:'10d',delay:'—',weight:'155t',carrier:'PIL',value:'$430K',steps:[2,1,0,0,0]},
+  {id:'SH-3344',from:'Nairobi',to:'Dubai',score:9,cargo:'Coffee',eta:'5d 6h',delay:'—',weight:'60t',carrier:'ZIM',value:'$190K',steps:[2,2,2,1,0]},
+  {id:'SH-9901',from:'Hamburg',to:'New York',score:33,cargo:'Chemicals',eta:'8d',delay:'+1h',weight:'220t',carrier:'Hapag',value:'$1.1M',steps:[2,1,0,0,0]},
+  {id:'SH-1122',from:'Busan',to:'Los Angeles',score:22,cargo:'Electronics',eta:'11d',delay:'—',weight:'400t',carrier:'HMM',value:'$3.8M',steps:[2,1,0,0,0]},
+];
+
+const ALERTS_DATA=[
+  {type:'crit',title:'Pacific Storm System — SH-4821 Critical',body:'Typhoon Kenji (Category 3, 185km/h) intercepts Shanghai–Los Angeles primary lane. Predicted ETA impact: +18–22h. 4,200 containers at risk. Southern corridor alternate available.',tags:['SH-4821','Weather','Pacific'],time:'2 min ago'},
+  {type:'warn',title:'Port Congestion — Rotterdam Hub',body:'Rotterdam ECT terminal at 94.3% capacity. 6 vessels queued. SH-3390 ETA revised +6h. Pre-clearance documentation submitted.',tags:['SH-3390','Port','Rotterdam'],time:'14 min ago'},
+  {type:'warn',title:'Customs Screening — SH-5512',body:'Dubai Customs enhanced screening for energy cargo. 71% delay probability (3–5h). Pre-documentation filed.',tags:['SH-5512','Customs','Dubai'],time:'38 min ago'},
+  {type:'info',title:'SH-1170 Auto-Rerouted Successfully',body:'AI rerouted SH-1170 via Lombok Strait, avoiding Malacca congestion. Saves 3.2h transit time. Carrier confirmed.',tags:['SH-1170','Rerouted'],time:'1h ago'},
+  {type:'info',title:'AI Model v2.4 Deployed',body:'Retrained on 50,847 shipments. Accuracy improved to 94.1%. 23% better precision on weather-related delays.',tags:['ML Model','System'],time:'3h ago'},
+  {type:'warn',title:'Carrier API Degraded — Maersk',body:'Maersk tracking API intermittent 503 errors since 09:14 UTC. 4 shipments on AIS fallback. ETA for fix: 2h.',tags:['API','Maersk','System'],time:'4h ago'},
+  {type:'info',title:'SH-6670 Departed New York',body:'Pacific Voyager departed at 04:22 UTC. Manifest: 847 TEU, 95t consumer electronics. Next checkpoint: Mid-Atlantic.',tags:['SH-6670','Departed'],time:'5h ago'},
+  {type:'info',title:'ECMWF Weather Model Updated',body:'10-day forecast integrated. 3 new disruption zones identified: North Atlantic, Bay of Bengal, South China Sea.',tags:['Weather','ECMWF'],time:'6h ago'},
+];
+
+const REROUTED=new Set();
+let selId=null, filterMode='ALL';
+let showRoutes=true, showDis=true;
+let disruptions=[];
+let chartsOk=false, mlOk=false;
+
+// ══ HELPERS ══
+const rc=s=>s>=85?'#dc2626':s>=65?'#f97316':s>=35?'#eab308':s>=15?'#84cc16':'#16a34a';
+const rn=s=>s>=85?'CRITICAL':s>=65?'HIGH':s>=35?'MEDIUM':'LOW';
+const rbg=s=>s>=85?'#fee2e2':s>=65?'#ffedd5':s>=35?'#fef3c7':s>=15?'#f0fdf4':'#dcfce7';
+
+// ══ THEME ══
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('theme-icon').textContent=isDark?'🌙':'☀️';
+  document.getElementById('theme-lbl').textContent=isDark?'Dark':'Light';
+  document.getElementById('toggle-track').classList.toggle('on',!isDark);
+}
+
+// ══ CLOCK ══
+function tick(){const t=new Date();document.getElementById('clock').textContent=t.toUTCString().slice(17,25);}
+setInterval(tick,1000);tick();
+
+// ══ NAV ══
+function nav(btn,view){
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v-'+view).classList.add('active');
+  if(view==='analytics') initCharts();
+  if(view==='ai'){initML();initFI();}
+  if(view==='alerts') renderAlerts();
+}
+
+// ══ MAP ══
+function drawGrid(){
+  const g=document.getElementById('grid-g');
+  let h='';
+  for(let x=0;x<=1000;x+=100)h+=`<line class="grid-line" x1="${x}" y1="0" x2="${x}" y2="560"/>`;
+  for(let y=0;y<=560;y+=100)h+=`<line class="grid-line" x1="0" y1="${y}" x2="1000" y2="${y}"/>`;
+  g.innerHTML=h;
+}
+
+function cp(a,b){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2-55;return `M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}`;}
+
+function renderMap(){
+  const rg=document.getElementById('routes-g');
+  const sg=document.getElementById('ships-g');
+  const hg=document.getElementById('hubs-g');
+  const dg=document.getElementById('dis-g');
+  const rrg=document.getElementById('reroutes-g');
+  let rh='',sh='',hh='',dh='',rrh='';
+
+  if(showRoutes){
+    SHIPS.forEach(s=>{
+      const a=HUBS[s.from],b=HUBS[s.to];
+      if(!a||!b)return;
+      const sel=selId===s.id,rer=REROUTED.has(s.id);
+      const col=rer?'#16a34a':rc(s.score);
+      rh+=`<path class="route-line" d="${cp(a,b)}" stroke="${col}" opacity="${sel?1:0.4}" stroke-width="${sel?2.2:1.3}"/>`;
+      if(rer){const mx2=(a.x+b.x)/2,my2=(a.y+b.y)/2-90;rrh+=`<path class="reroute-line" d="M${a.x},${a.y} Q${mx2},${my2} ${b.x},${b.y}" opacity="${sel?1:.65}"/>`;}
+    });
+  }
+
+  SHIPS.forEach(s=>{
+    const a=HUBS[s.from],b=HUBS[s.to];
+    if(!a||!b)return;
+    const t=0.35+Math.sin(Date.now()/4200+s.score*.08)*.14;
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2-55;
+    const px=a.x*(1-t)**2+2*mx*t*(1-t)+b.x*t**2;
+    const py=a.y*(1-t)**2+2*my*t*(1-t)+b.y*t**2;
+    const sel=selId===s.id,rer=REROUTED.has(s.id);
+    const col=rer?'#16a34a':rc(s.score);
+    const r=sel?7:4;
+    sh+=`<circle class="ship-dot" cx="${px}" cy="${py}" r="${r}" fill="${col}"
+      opacity="${sel?1:.9}" style="${s.score>=65?'filter:url(#glow-sm)':''}"
+      onmouseenter="showTT(event,'${s.id}')" onmouseleave="hideTT()"
+      onclick="selShip('${s.id}')"/>`;
+    if(sel)sh+=`<circle cx="${px}" cy="${py}" r="${r+5}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".35"/>`;
+  });
+
+  Object.entries(HUBS).forEach(([n,p])=>{
+    hh+=`<circle class="hub-ring" cx="${p.x}" cy="${p.y}" r="5"/>
+    <circle class="hub-dot" cx="${p.x}" cy="${p.y}" r="3"/>
+    <text class="hub-lbl" x="${p.x+7}" y="${p.y-3}">${n}</text>`;
+  });
+
+  if(showDis){disruptions.forEach(d=>{
+    dh+=`<circle class="dis-circle" cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${d.c}" stroke="${d.c}"/>
+    <text class="dis-lbl" x="${d.x}" y="${d.y-d.r-6}" fill="${d.c}">${d.lbl}</text>`;
+  });}
+
+  rg.innerHTML=rh;rrg.innerHTML=rrh;sg.innerHTML=sh;hg.innerHTML=hh;dg.innerHTML=dh;
+  document.getElementById('ms-crit').textContent=SHIPS.filter(s=>!REROUTED.has(s.id)&&s.score>=85).length;
+  document.getElementById('ms-high').textContent=SHIPS.filter(s=>!REROUTED.has(s.id)&&s.score>=65&&s.score<85).length;
+  document.getElementById('ms-rer').textContent=REROUTED.size;
+}
+
+function showTT(e,id){
+  const s=SHIPS.find(x=>x.id===id);if(!s)return;
+  const tt=document.getElementById('tooltip');
+  tt.innerHTML=`<div class="tt-id">${s.id}</div>
+    <div class="tt-r"><span class="tt-k">Route</span><span class="tt-v">${s.from} → ${s.to}</span></div>
+    <div class="tt-r"><span class="tt-k">Cargo</span><span class="tt-v">${s.cargo}</span></div>
+    <div class="tt-r"><span class="tt-k">Risk</span><span class="tt-v" style="color:${rc(s.score)}">${s.score} · ${rn(s.score)}</span></div>
+    <div class="tt-r"><span class="tt-k">ETA</span><span class="tt-v">${s.eta}</span></div>
+    ${s.delay!=='—'?`<div class="tt-r"><span class="tt-k">Delay</span><span class="tt-v" style="color:#d97706">${s.delay}</span></div>`:''}`;
+  tt.style.display='block';
+  const wr=document.getElementById('map-wrap').getBoundingClientRect();
+  let l=e.clientX-wr.left+12,t=e.clientY-wr.top+12;
+  if(l+190>wr.width)l=e.clientX-wr.left-195;
+  tt.style.left=l+'px';tt.style.top=t+'px';
+}
+function hideTT(){document.getElementById('tooltip').style.display='none';}
+
+// ══ SHIP LIST ══
+function renderList(){
+  const fil=filterMode==='ALL'?SHIPS:
+    filterMode==='CRIT'?SHIPS.filter(s=>s.score>=85):
+    filterMode==='HIGH'?SHIPS.filter(s=>s.score>=65&&s.score<85):
+    filterMode==='MED'?SHIPS.filter(s=>s.score>=35&&s.score<65):
+    SHIPS.filter(s=>s.score<35);
+  document.getElementById('ship-list').innerHTML=fil.map(s=>`
+    <div class="si${selId===s.id?' sel':''}" onclick="selShip('${s.id}')">
+      <div class="si-pip" style="background:${rc(s.score)}"></div>
+      <div class="si-body">
+        <div class="si-id">${s.id}${REROUTED.has(s.id)?' <span style="color:#16a34a">↺</span>':''}</div>
+        <div class="si-route">${s.from} → ${s.to}</div>
+      </div>
+      <span class="risk-tag" style="background:${rbg(s.score)};color:${rc(s.score)}">${rn(s.score).slice(0,4)}</span>
+      <span class="si-score" style="color:${rc(s.score)}">${s.score}</span>
+    </div>`).join('');
+  document.getElementById('sb-risk').textContent=SHIPS.filter(s=>!REROUTED.has(s.id)&&s.score>=65).length;
+}
+
+function setF(btn,f){
+  document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('fa'));
+  btn.classList.add('fa');filterMode=f;renderList();
+}
+
+// ══ DETAIL ══
+function selShip(id){selId=id;renderList();renderMap();renderDetail();}
+
+function renderDetail(){
+  const s=SHIPS.find(x=>x.id===selId);
+  if(!s){document.getElementById('rp-body').innerHTML='<div class="no-sel"><div class="no-sel-icon">📦</div><span>Select a shipment</span></div>';return;}
+  const rer=REROUTED.has(s.id);
+  const rb=document.getElementById('rp-risk');
+  rb.style.display='inline-block';rb.style.background=rbg(s.score);rb.style.color=rc(s.score);rb.textContent=rn(s.score);
+  const sl=['Origin','Port','Transit','Customs','Dest'];
+  const prog=sl.map((l,i)=>{
+    const st=s.steps[i];
+    return `<div class="ps${st===2?' done':st===1?' act':''}">
+      <div class="pdot${st===2?' done':st===1?' act':''}"></div>
+      <div class="plbl">${l}</div></div>`;
+  }).join('');
+  const alt=Math.max(7,s.score-55);
+  const needsR=s.score>=65&&!rer;
+  document.getElementById('rp-body').innerHTML=`
+    <div class="det-id">${s.id}</div>
+    <div class="det-route">${s.from} → ${s.to}</div>
+    <div class="prog">${prog}</div>
+    <div class="slabel">Shipment Info</div>
+    <div class="ig">
+      <div class="ig-c"><div class="ig-k">Cargo</div><div class="ig-v">${s.cargo}</div></div>
+      <div class="ig-c"><div class="ig-k">Weight</div><div class="ig-v">${s.weight}</div></div>
+      <div class="ig-c"><div class="ig-k">ETA</div><div class="ig-v" style="color:#16a34a">${s.eta}</div></div>
+      <div class="ig-c"><div class="ig-k">Delay Risk</div><div class="ig-v" style="color:${s.delay==='—'?'#16a34a':'#d97706'}">${s.delay}</div></div>
+      <div class="ig-c"><div class="ig-k">Carrier</div><div class="ig-v">${s.carrier}</div></div>
+      <div class="ig-c"><div class="ig-k">Value</div><div class="ig-v">${s.value}</div></div>
+    </div>
+    <div class="rb-wrap">
+      <div class="rb-hdr"><span class="rb-k">AI Risk Score</span><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${rc(s.score)}">${s.score}/100</span></div>
+      <div class="rb-track"><div class="rb-fill" style="width:${s.score}%;background:${rc(s.score)}"></div></div>
+    </div>
+    ${needsR?`
+    <div class="slabel">Route Comparison</div>
+    <div class="rc-box">
+      <div class="rc-label" style="color:var(--text3)">CURRENT ROUTE</div>
+      <div class="rc-stats">
+        <div><div class="rc-k">Distance</div><div class="rc-v">11,240 km</div></div>
+        <div><div class="rc-k">Duration</div><div class="rc-v">${s.eta}</div></div>
+        <div><div class="rc-k">Risk</div><div class="rc-v" style="color:${rc(s.score)}">${s.score}</div></div>
+        <div><div class="rc-k">Cost</div><div class="rc-v">$42,000</div></div>
+      </div>
+    </div>
+    <div class="rc-box rec">
+      <div class="rc-label" style="color:#16a34a">✓ AI RECOMMENDED ROUTE</div>
+      <div class="rc-stats">
+        <div><div class="rc-k">Distance</div><div class="rc-v">12,800 km</div></div>
+        <div><div class="rc-k">Duration</div><div class="rc-v">+6h adjusted</div></div>
+        <div><div class="rc-k">Risk</div><div class="rc-v" style="color:#16a34a">${alt}</div></div>
+        <div><div class="rc-k">Cost</div><div class="rc-v">$38,500</div></div>
+      </div>
+    </div>
+    <div class="act-row">
+      <button class="btn btn-g" style="flex:1;font-size:11px" onclick="doReroute('${s.id}')">Accept Reroute ✓</button>
+      <button class="btn" style="font-size:11px" onclick="showToast('info','Route Analysis','Alternative avoids typhoon zone via southern corridor. Saves $3,500 vs current route.')">Details</button>
+    </div>`:`
+    <div style="text-align:center;padding:12px;background:${rer?'#f0fdf4':'#f8fafc'};border-radius:var(--r);border:1px solid ${rer?'#86efac':'var(--border)'}">
+      <span style="font-size:11px;color:${rer?'#16a34a':'var(--text3)'}">
+        ${rer?'✓ Successfully rerouted — risk reduced':'✓ Shipment is on track, no action needed'}
+      </span>
+    </div>`}`;
+}
+
+function doReroute(id){
+  REROUTED.add(id);
+  const s=SHIPS.find(x=>x.id===id);
+  s.score=Math.max(7,s.score-55);
+  renderList();renderMap();renderDetail();
+  showToast('success','Route Updated',`${id} rerouted successfully. Risk score reduced. Carrier notified.`);
+}
+
+// ══ ALERTS RP ══
+function renderAlertsRP(){
+  document.getElementById('alerts-rp').innerHTML=ALERTS_DATA.slice(0,3).map((a,i)=>`
+    <div class="alert-card" style="border-left-color:${a.type==='crit'?'#dc2626':a.type==='warn'?'#d97706':'#2563eb'}">
+      <div class="ac-title">${a.title}</div>
+      <div class="ac-body">${a.body}</div>
+      <div class="ac-foot">
+        <span class="ac-time">${a.time}</span>
+        ${a.type!=='info'?`<button class="btn" style="font-size:9px;padding:3px 8px" onclick="this.closest('.alert-card').classList.add('dismissed');this.textContent='✓'">Ack</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ══ CONTROLS ══
+function toggleLayer(l,btn){
+  btn.classList.toggle('on');
+  if(l==='routes')showRoutes=btn.classList.contains('on');
+  if(l==='dis')showDis=btn.classList.contains('on');
+  renderMap();
+}
+function addDisruption(){
+  const colors=['#dc2626','#d97706','#7c3aed'];
+  const labels=['⚡ EVENT','⚠ DELAY','🌊 WEATHER'];
+  const i=Math.floor(Math.random()*3);
+  disruptions.push({x:200+Math.random()*600,y:80+Math.random()*330,r:32+Math.random()*20,c:colors[i],lbl:labels[i]});
+  renderMap();
+  showToast('warn','Disruption Simulated',`New disruption zone added. ${SHIPS.filter(s=>s.score>40).length} shipments potentially affected.`);
+}
+function triggerStorm(){
+  disruptions.push({x:500,y:168,r:62,c:'#dc2626',lbl:'🌪 TYPHOON KENJI'});
+  SHIPS[0].score=97;
+  renderMap();renderList();renderDetail();
+  document.getElementById('alert-chip').textContent='⚠ 4 ALERTS';
+  showToast('danger','CRITICAL STORM ALERT','Typhoon Kenji (Cat 3) on Pacific corridor. SH-4821 at critical risk. Immediate reroute recommended.');
+}
+function autoReroute(){
+  const at=SHIPS.filter(s=>s.score>=65&&!REROUTED.has(s.id));
+  at.forEach(s=>doReroute(s.id));
+  showToast('success','Auto-Reroute Complete',`${at.length} shipments rerouted by AI. Estimated savings: $${(at.length*3800).toLocaleString()}.`);
+}
+
+// ══ MINI CHART ══
+function renderMiniChart(){
+  const data=[{l:'Wthr',v:34,c:'#ef4444'},{l:'Port',v:28,c:'#f97316'},{l:'Cust',v:18,c:'#3b82f6'},{l:'Mech',v:12,c:'#8b5cf6'},{l:'Other',v:8,c:'#94a3b8'}];
+  const max=Math.max(...data.map(d=>d.v));
+  document.getElementById('mini-bars').innerHTML=data.map(d=>`<div class="mb" style="height:${Math.round(d.v/max*100)}%;background:${d.c}" title="${d.l}: ${d.v}%"></div>`).join('');
+  document.getElementById('mini-lbls').innerHTML=data.map(d=>`<div class="mb-l">${d.l}</div>`).join('');
+}
+
+// ══ TOAST ══
+function showToast(type,title,body){
+  const el=document.getElementById('toast');
+  const col=type==='danger'||type==='crit'?'#dc2626':type==='warn'?'#d97706':type==='success'?'#16a34a':'#2563eb';
+  document.getElementById('toast-bar').style.background=col;
+  document.getElementById('toast-title').textContent=title;
+  document.getElementById('toast-body').textContent=body;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),4500);
+}
+
+// ══ CHARTS ══
+function initCharts(){
+  if(chartsOk)return;chartsOk=true;
+  const g='rgba(226,232,240,.7)',t='#94a3b8',f={family:"'Plus Jakarta Sans',sans-serif",size:10};
+  new Chart(document.getElementById('ch-ot'),{type:'line',data:{labels:['W1','W2','W3','W4','W5','W6','W7','W8'],datasets:[{label:'On-Time %',data:[81,84,82,86,83,88,85,87],borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',fill:true,tension:.4,pointBackgroundColor:'#16a34a',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g},ticks:{color:t,font:f}},y:{grid:{color:g},ticks:{color:t,font:f},min:75,max:95}}}});
+  new Chart(document.getElementById('ch-dis'),{type:'doughnut',data:{labels:['Weather','Port','Customs','Mechanical','Other'],datasets:[{data:[34,28,18,12,8],backgroundColor:['#ef4444','#f97316','#3b82f6','#8b5cf6','#94a3b8'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#475569',font:f,boxWidth:10,padding:8}}}}});
+  new Chart(document.getElementById('ch-vol'),{type:'bar',data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar','Apr'],datasets:[{label:'Shipments',data:[145,162,178,155,168,180,175],backgroundColor:'rgba(37,99,235,.7)',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g},ticks:{color:t,font:f}},y:{grid:{color:g},ticks:{color:t,font:f}}}}});
+  new Chart(document.getElementById('ch-risk'),{type:'line',data:{labels:['D30','D25','D20','D15','D10','D5','Today'],datasets:[{label:'Avg Risk',data:[52,48,55,44,42,38,35],borderColor:'#d97706',backgroundColor:'rgba(217,119,6,.08)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#d97706'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g},ticks:{color:t,font:f}},y:{grid:{color:g},ticks:{color:t,font:f},min:20,max:70}}}});
+  new Chart(document.getElementById('ch-dist'),{type:'bar',data:{labels:['0–10','10–20','20–30','30–40','40–50','50–60','60–70','70–80','80–90','90–100'],datasets:[{label:'Shipments',data:[42,38,25,18,14,9,6,5,3,2],backgroundColor:['#16a34a','#16a34a','#16a34a','#84cc16','#eab308','#f97316','#ef4444','#ef4444','#dc2626','#dc2626'],borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g},ticks:{color:t,font:f}},y:{grid:{color:g},ticks:{color:t,font:f}}}}});
+}
+
+// ══ ROUTE OPTIMIZER ══
+const ROUTES=[
+  {name:'Suez Canal Route',tag:'FASTEST',best:false,dur:'22 days',dist:'19,800 km',cost:'$38,500',risk:32,stops:'Singapore, Colombo, Aden',note:'Standard primary route via Mediterranean. Moderate congestion at Suez expected.'},
+  {name:'Cape of Good Hope',tag:'LOWEST RISK',best:true,dur:'28 days',dist:'24,100 km',cost:'$29,200',risk:6,stops:'Cape Town, Walvis Bay',note:'Avoids all current conflict zones and storm forecasts. AI recommends for current conditions.'},
+  {name:'Arctic Passage',tag:'SHORTEST DIST',best:false,dur:'18 days',dist:'14,200 km',cost:'$52,000',risk:44,stops:'Bering Strait (seasonal)',note:'May–Oct only. Requires icebreaker escort. High fuel surcharge applies.'},
+];
+function genRoutes(){
+  document.getElementById('ro-cards').innerHTML=ROUTES.map(r=>`
+    <div class="ro-card${r.best?' best':''}">
+      <div class="ro-card-badge" style="background:${r.best?'#dcfce7':'#f1f5f9'};color:${r.best?'#15803d':'#64748b'}">${r.tag}</div>
+      ${r.best?`<div style="font-size:10px;color:#16a34a;font-weight:600;margin-bottom:6px">★ AI Recommended for current conditions</div>`:''}
+      <div class="ro-card-name">${r.name}</div>
+      <div class="ro-metrics">
+        <div class="ro-m"><div class="ro-mv" style="color:#16a34a">${r.dur}</div><div class="ro-ml">Duration</div></div>
+        <div class="ro-m"><div class="ro-mv" style="color:#2563eb">${r.cost}</div><div class="ro-ml">Est. Cost</div></div>
+        <div class="ro-m"><div class="ro-mv" style="color:${rc(r.risk)}">${r.risk}</div><div class="ro-ml">Risk Score</div></div>
+        <div class="ro-m"><div class="ro-mv" style="color:#64748b">${r.dist}</div><div class="ro-ml">Distance</div></div>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;font-weight:600;letter-spacing:.06em">Risk Level</div>
+      <div class="ro-risk-bar"><div class="ro-risk-fill" style="width:${r.risk}%;background:${rc(r.risk)}"></div></div>
+      <div class="ro-note"><strong>Stops:</strong> ${r.stops}<br>${r.note}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn${r.best?' btn-g':''} btn-full" onclick="showToast('success','Route Selected','${r.name} booked. Carrier notified. ETA confirmed.')">Select Route</button>
+        <button class="btn" onclick="showToast('info','Route Details','${r.name}: ${r.dist}, ${r.dur}, ${r.cost}. Confidence: 94.1%')">Info</button>
+      </div>
+    </div>`).join('');
+}
+
+// ══ AI MODEL ══
+const ML=[
+  {id:'w',lbl:'Weather severity',min:0,max:100,val:30,wt:.34},
+  {id:'p',lbl:'Port congestion %',min:0,max:100,val:50,wt:.26},
+  {id:'c',lbl:'Customs risk',min:0,max:100,val:25,wt:.20},
+  {id:'d',lbl:'Route distance (×km)',min:1,max:25,val:12,wt:.11},
+  {id:'v',lbl:'Cargo value ($M)',min:0,max:10,val:2,wt:.09},
+];
+let mlInit=false;
+function initML(){
+  if(mlInit)return;mlInit=true;
+  document.getElementById('ml-sliders').innerHTML=ML.map(s=>`
+    <div class="sl-row">
+      <span class="sl-lbl">${s.lbl}</span>
+      <input type="range" min="${s.min}" max="${s.max}" step="1" value="${s.val}" id="ml-${s.id}" oninput="updateML()">
+      <span class="sl-val" id="ml-${s.id}-v">${s.val}</span>
+    </div>`).join('');
+  updateML();
+}
+function updateML(){
+  let score=0;
+  ML.forEach(s=>{const v=+document.getElementById('ml-'+s.id).value;document.getElementById('ml-'+s.id+'-v').textContent=v;score+=v*s.wt;});
+  score=Math.min(100,Math.round(score));
+  const col=rc(score),nm=rn(score);
+  document.getElementById('ml-score').textContent=score;
+  document.getElementById('ml-score').style.color=col;
+  document.getElementById('ml-cat').textContent=`Category: ${nm}`;
+  document.getElementById('ml-cat').style.color=col;
+  document.getElementById('ml-conf').textContent=`Confidence: ${85+Math.floor(Math.random()*9)}% · Random Forest`;
+  const recs={CRITICAL:'Immediate rerouting required. Notify carrier and consignee. Activate contingency plan.',HIGH:'Review route within 2 hours. Consider alternate corridor. Alert logistics manager.',MEDIUM:'Monitor closely. Pre-position contingency documentation. Check port status.',LOW:'No action needed. Standard monitoring protocol active.'};
+  document.getElementById('ml-rec').textContent=recs[nm]||'Standard monitoring active.';
+}
+function initFI(){
+  const fi=[{lbl:'Weather severity',w:.34},{lbl:'Port congestion',w:.26},{lbl:'Customs risk',w:.20},{lbl:'Route distance',w:.11},{lbl:'Cargo value',w:.09}];
+  document.getElementById('fi-bars').innerHTML=fi.map(f=>`
+    <div class="fi-row">
+      <span class="fi-lbl">${f.lbl}</span>
+      <div class="fi-bar"><div class="fi-fill" style="width:${Math.round(f.w*100/.34*100)}%"></div></div>
+      <span class="fi-val">${f.w}</span>
+    </div>`).join('');
+}
+
+// ══ ALERTS FULL ══
+function renderAlerts(){
+  document.getElementById('al-cnt').textContent=ALERTS_DATA.length+' events';
+  document.getElementById('al-list').innerHTML=ALERTS_DATA.map((a,i)=>`
+    <div class="al-card" style="border-left-color:${a.type==='crit'?'#dc2626':a.type==='warn'?'#d97706':'#2563eb'}">
+      <div class="al-top">
+        <div class="al-title">${a.title}</div>
+        <div class="al-time">${a.time}</div>
+      </div>
+      <div class="al-body">${a.body}</div>
+      <div class="al-tags">${a.tags.map(t=>`<span class="al-tag">${t}</span>`).join('')}</div>
+      <div class="al-foot">
+        ${a.type!=='info'?`<button class="btn btn-g" style="font-size:11px" onclick="this.textContent='✓ Acknowledged';this.disabled=true;this.style.opacity='.6'">Acknowledge</button>`:''}
+        <button class="btn" style="font-size:11px" onclick="showToast('info','Alert Detail','Investigating: ${a.title.replace(/'/g,'')}')">Investigate</button>
+        ${a.type!=='info'?`<button class="btn" style="font-size:11px;border-color:#fca5a5;color:#dc2626" onclick="showToast('warn','Alert Escalated','${a.title.replace(/'/g,'')} has been escalated to the senior logistics manager.')">Escalate</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ══ ANIMATION ══
+let frame=0;
+(function loop(){frame++;if(frame%180===0)renderMap();requestAnimationFrame(loop);})();
+
+// ══ INIT ══
+drawGrid();renderMap();renderList();renderAlertsRP();renderMiniChart();genRoutes();
+</script>
+</body>
+</html>
